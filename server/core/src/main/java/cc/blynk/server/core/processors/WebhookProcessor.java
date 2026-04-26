@@ -28,6 +28,7 @@ import org.asynchttpclient.Response;
 
 import java.time.Instant;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static cc.blynk.server.core.protocol.enums.Command.WEB_HOOKS;
 import static cc.blynk.utils.StringUtils.DATETIME_PATTERN;
@@ -55,6 +56,7 @@ public class WebhookProcessor extends NotificationBase {
 
     private static final Logger log = LogManager.getLogger(WebhookProcessor.class);
     private static final String CONTENT_TYPE = "Content-Type";
+    private static final Pattern PIN_VALUE_PATTERN = Pattern.compile("/pin\\[V(\\d+)]/");
 
     private final AsyncHttpClient httpclient;
     private final GlobalStats globalStats;
@@ -85,7 +87,15 @@ public class WebhookProcessor extends NotificationBase {
         checkIfNotificationQuotaLimitIsNotReached(now);
 
         if (webhook.isNotFailed(webhookFailureLimit) && webhook.url != null) {
-            process(session, dash.id, deviceId, webhook, triggerValue);
+            // Find the device to pass to the process method
+            Device device = null;
+            for (Device d : dash.devices) {
+                if (d.id == deviceId) {
+                    device = d;
+                    break;
+                }
+            }
+            process(session, dash.id, deviceId, webhook, triggerValue, device);
         }
     }
 
@@ -143,8 +153,9 @@ public class WebhookProcessor extends NotificationBase {
         });
     }
 
-    private void process(Session session, int dashId, int deviceId,  WebHook webHook, String triggerValue) {
-        String newUrl = format(webHook.url, triggerValue);
+    private void process(Session session, int dashId, int deviceId,
+                         WebHook webHook, String triggerValue, Device device) {
+        String newUrl = format(webHook.url, triggerValue, device);
 
         if (!WebHook.isValidUrl(newUrl)) {
             return;
@@ -175,8 +186,8 @@ public class WebhookProcessor extends NotificationBase {
                     builder.setHeader(header.name, header.value);
                     if (webHook.body != null && !webHook.body.isEmpty()) {
                         if (CONTENT_TYPE.equals(header.name)) {
-                            String newBody = format(webHook.body, triggerValue);
-                            log.trace("Webhook formatted body : {}", newBody);
+                            String newBody = format(webHook.body, triggerValue, device);
+                            log.info("Webhook formatted body FINAL: {}", newBody);
                             builder.setBody(newBody);
                         }
                     }
@@ -245,10 +256,37 @@ public class WebhookProcessor extends NotificationBase {
         }
     }
 
-    private static String format(String data, String triggerValue) {
+    private static String format(String data, String triggerValue, Device device) {
         //this is an ugly hack to make it work with Blynk HTTP API.
         String quotedValue = Matcher.quoteReplacement(triggerValue);
         data = PIN_PATTERN.matcher(data).replaceFirst(quotedValue);
+
+        // Replace /pin[Vxxx]/ with actual values from PlaatoStructure
+        if (device != null && device.plaato != null) {
+            log.info("Formatting data BEFORE Plaato replacement: {}", data);
+            Matcher matcher = PIN_VALUE_PATTERN.matcher(data);
+            StringBuffer sb = new StringBuffer();
+            while (matcher.find()) {
+                try {
+                    short pin = Short.parseShort(matcher.group(1));
+                    String val = device.plaato.pullPinData(pin);
+                    log.info("Replacing pin {} with value {}", pin, val);
+                    if (val != null) {
+                        matcher.appendReplacement(sb, val);
+                    } else {
+                        // If value is null (e.g. not set yet), replace with empty string or "0"
+                        matcher.appendReplacement(sb, "0");
+                    }
+                } catch (NumberFormatException e) {
+                    // Ignore invalid pin numbers
+                }
+            }
+            matcher.appendTail(sb);
+            data = sb.toString();
+            log.info("Formatting data AFTER Plaato replacement: {}", data);
+        } else {
+            log.warn("Device or Plaato structure is null. Cannot replace pin values.");
+        }
 
         String[] splitted = quotedValue.split(StringUtils.BODY_SEPARATOR_STRING);
         switch (splitted.length) {

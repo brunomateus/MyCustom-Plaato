@@ -2,6 +2,9 @@ package cc.blynk.server.core.plugins;
 
 import cc.blynk.server.core.model.DataStream;
 import cc.blynk.server.core.model.enums.PinType;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 // Every provisioned PLAATO-device will have one instance of virtual_plaato running on
 // the Blynk server, conserving states, doing simple calculations and routing
 // traffic between the device and the server.
@@ -12,6 +15,7 @@ import cc.blynk.server.core.model.enums.PinType;
 
 public class PlaatoStructure {
 
+    private static final Logger log = LogManager.getLogger(PlaatoStructure.class);
 
     private volatile int bpm;                            // Bubbles Per Minute (indication of fermentation activity)
     private volatile float temperature;                    // Temperature in Celsius
@@ -357,6 +361,9 @@ public class PlaatoStructure {
             this.isABVSet = true;
             this.co2 = (this.og - this.sg) * 1000F * volume * 1.041F / 1.842F;
             this.isCo2Set = true;
+            //log.info("Calculated SG: {}, ABV: {}, OG: {}, Bubbles: {}, Volume: {}", sg, abv, og, bubbles, volume);
+        } else {
+            //log.info("Skipping calc. VolumeSet: {}, OGSet: {}", isVolumeSet, isOGSet);
         }
     }
 

@@ -118,6 +118,13 @@ public class SslContextHolder {
     private static SslContext initSslContext(String serverCertPath, String serverKeyPath, String serverPass,
                                             SslProvider sslProvider) {
         try {
+            if (serverCertPath == null || serverCertPath.isEmpty()
+                    || serverKeyPath == null || serverKeyPath.isEmpty()) {
+                log.warn("ATTENTION. Server certificate paths not specified."
+                        + " Using embedded server certs and one way ssl. This is not secure.");
+                return build(sslProvider);
+            }
+
             File serverCert = new File(serverCertPath);
             File serverKey = new File(serverKeyPath);
 

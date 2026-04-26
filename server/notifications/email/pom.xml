@@ -42,6 +42,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.github.kenglxn.qrgen</groupId>
+            <artifactId>core</artifactId>
+            <version>${qrgen.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>cc.blynk.utils</groupId>
             <artifactId>utils</artifactId>
             <version>${project.version}</version>

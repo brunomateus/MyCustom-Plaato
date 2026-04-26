@@ -1,6 +1,9 @@
 # Created by .ignore support plugin (hsz.mobi)
+.DS_Store
 *.iml
 .idea
 target
 *.log
+logs
+dataTeste
 dependency-reduced-pom.xml

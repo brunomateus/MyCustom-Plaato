@@ -10,6 +10,13 @@
     <artifactId>notifications</artifactId>
     <groupId>cc.blynk.server.notifications</groupId>
 
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
     <packaging>pom</packaging>
 
     <modules>

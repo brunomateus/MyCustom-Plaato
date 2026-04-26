@@ -154,6 +154,29 @@ public class MobileHardwareLogic extends BaseProcessorHandler {
 
                 processEventorAndWebhook(state.user, dash, targetId, session, pin, pinType, value, now);
                 break;
+            case 'r':
+                splitBody = split3(split[1]);
+                pinType = PinType.getPinType(splitBody[0].charAt(0));
+                pin = NumberUtil.parsePin(splitBody[1]);
+
+                if (PlaatoStructure.isReservedByApp(pinType, pin)) {
+                    for (Device device : dash.devices) {
+                        if (ArrayUtil.contains(deviceIds, device.id)) {
+                            String val = device.plaato.pullPinData(pin);
+                            if (val != null) {
+                                String body = "vw " + pin + " " + val;
+                                session.sendToApps(HARDWARE, message.id, dash.id, device.id, body);
+                            }
+                        }
+                    }
+                } else {
+                    if (session.sendMessageToHardware(dashId, HARDWARE, message.id, split[1], deviceIds)
+                            && !dash.isNotificationsOff) {
+                        log.debug("No device in session.");
+                        ctx.writeAndFlush(deviceNotInNetwork(message.id), ctx.voidPromise());
+                    }
+                }
+                break;
         }
     }
 
