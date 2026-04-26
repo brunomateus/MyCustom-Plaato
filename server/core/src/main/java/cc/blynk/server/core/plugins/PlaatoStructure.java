@@ -361,9 +361,9 @@ public class PlaatoStructure {
             this.isABVSet = true;
             this.co2 = (this.og - this.sg) * 1000F * volume * 1.041F / 1.842F;
             this.isCo2Set = true;
-            //log.info("Calculated SG: {}, ABV: {}, OG: {}, Bubbles: {}, Volume: {}", sg, abv, og, bubbles, volume);
+            log.debug("Calculated SG: {}, ABV: {}, OG: {}, Bubbles: {}, Volume: {}", sg, abv, og, bubbles, volume);
         } else {
-            //log.info("Skipping calc. VolumeSet: {}, OGSet: {}", isVolumeSet, isOGSet);
+            log.debug("Skipping calc. VolumeSet: {}, OGSet: {}", isVolumeSet, isOGSet);
         }
     }
 
