@@ -57,7 +57,6 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 
 import static cc.blynk.core.http.Response.redirect;
-import static cc.blynk.utils.StringUtils.BLYNK_LANDING;
 import static cc.blynk.utils.StringUtils.WEBSOCKET_PATH;
 import static cc.blynk.utils.StringUtils.WEBSOCKET_WEB_PATH;
 
@@ -129,7 +128,7 @@ public class MobileAndHttpsServer extends BaseServer {
                 if (uri.equals("/")) {
                     //for local server do redirect to admin page
                     try {
-                        ctx.writeAndFlush(redirect(holder.props.isLocalRegion() ? rootPath : BLYNK_LANDING));
+                        ctx.writeAndFlush(redirect(rootPath));
                     } finally {
                         req.release();
                     }
