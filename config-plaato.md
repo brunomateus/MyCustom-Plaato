@@ -1,0 +1,5 @@
+ssid=brisa-3605081
+senha=9ncanrrv
+token=3d6eec9cde174d95a1687a5e666ede5d
+host=ip_do_server
+port=8080
